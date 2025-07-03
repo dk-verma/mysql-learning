@@ -1,0 +1,47 @@
+// open Consumer account
+
+CREATE OR REPLACE DATABASE demo_sharing;
+
+USE DATABASE demo_sharing;
+
+CREATE TABLE PROSPECTS 
+AS SELECT * FROM SNOWFLAKE_SAMPLE_DATA.TPCH_SF1.CUSTOMER;
+
+USE ROLE ACCOUNTADMIN;
+
+CREATE SHARE shr_prospects;
+
+GRANT USAGE ON DATABASE DEMO_SHARING TO SHARE shr_prospects;
+
+GRANT USAGE ON SCHEMA demo_sharing.public TO SHARE shr_prospects;
+
+GRANT SELECT ON TABLE demo_sharing.public.prospects TO SHARE shr_prospects;
+
+ALTER SHARE shr_prospects ADD ACCOUNT = <consumer_account_name>;
+
+
+// Goto, Provider account
+
+USE ROLE ACCOUNTADMIN;
+
+CREATE DATABASE MARKETING_RO FROM SHARE <provider_account_name>.shr_prospects;
+
+SELECT * FROM MARKETING_RO.public.PROSPECTS;
+
+SELECT COUNT(*) FROM MARKETING_RO.public.PROSPECTS;
+
+
+// Goto, Consumer account
+
+USE DATABASE DEMO_SHARING;
+
+DELETE FROM PROSPECTS WHERE C_MKTSEGMENT = 'AUTOMOBILE';
+
+SELECT COUNT(*) FROM PROSPECTS;
+
+
+// Goto, Provider account
+
+
+SELECT COUNT(*) FROM MARKETING_RO.public.PROSPECTS;
+

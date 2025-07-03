@@ -1,0 +1,102 @@
+-------------------- SUB QUERIES --------------------
+/*
+******* Subquery can be simply defined as a query within another query *******
+
+-- RULES for Subqueries:
+    - You can place Subquery in following SQL clauses: WHERE, HAVING and FROM.
+    - They can be used with SELECT, UPDATE, INSERT, DELETE statements along with expression operator. 
+      It could be equality operator or comparison operator such as =, >, =, <= and Like operator.
+    - A subquery is a query within another query. The outer query is called as main query and inner query is called as subquery.
+    - The subquery generally executes first, and its output is used to complete the query condition for the main or outer query.
+    - Subquery must be enclosed in parentheses.
+    - Subqueries are on the right side of the comparison operator.
+    - ORDER BY command cannot be used in a Subquery. GROUPBY command can be used to perform same function as ORDER BY command.
+*/
+
+-- SUBQUERY in FROM clause
+
+select *
+from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."CUSTOMER" as A
+inner join (select * from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."ORDERS" 
+           where o_orderpriority = '5-LOW') B
+on A.c_custkey = B.o_custkey;
+
+select *
+from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."CUSTOMER" as A
+inner join (select * from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."ORDERS" 
+         where o_orderpriority IN ('5-LOW','1-URGENT')) B
+on A.c_custkey = B.o_custkey;
+
+
+-- SUBQUERY in WHERE clause
+
+select * 
+from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."CUSTOMER"
+where c_custkey IN
+                (select distinct o_custkey 
+                 from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."ORDERS" 
+                 where o_orderpriority = '5-LOW');
+                 
+select * 
+from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."CUSTOMER"
+where c_custkey IN
+                (select distinct o_custkey 
+                 from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."ORDERS" 
+                 where o_orderpriority = '5-LOW' 
+                       and o_orderdate >= '1996-01-01');
+
+
+-- SUBQUERY in FROM and WHERE clauses
+
+select *
+from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."CUSTOMER" A
+left join (select * from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."ORDERS" 
+           where o_orderpriority = '5-LOW') B
+on A.c_custkey = B.o_custkey
+where c_custkey IN
+                (select distinct o_custkey 
+                 from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."ORDERS" 
+                 where c_acctbal > 5000);
+
+-- SUBQUERY in HAVING statement
+select c_mktsegment, 
+    sum(c_acctbal) as acct_bal
+from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."CUSTOMER"
+group by c_mktsegment
+having acct_bal > (select avg(avg_acctbal) from 
+                   (select sum(c_acctbal) as avg_acctbal from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."CUSTOMER" group by c_mktsegment));
+
+
+
+-- REAL World example (SUBQUERIES)
+
+create or replace table employee(employee_id number,
+                     empl_join_date date,
+                     dept varchar(10),
+                     salary number,
+                     manager_id number);
+                     
+insert into employee values(1,'2014-10-01','HR',40000,4),
+                                 (2,'2014-09-01','Tech',50000,9),
+                                 (3,'2018-09-01','Marketing',30000,5),
+                                 (4,'2017-09-01','HR',10000,5),
+                                 (5,'2019-09-01','HR',35000,9),
+                                 (6,'2015-09-01','Tech',90000,4),
+                                 (7,'2016-09-01','Marketing',20000,1);
+
+select * from employee;
+
+select employee_id,e.dept,e.salary
+  from employee e,
+              (select dept,avg(salary) as avsal 
+                  from employee 
+              group by dept
+              ) a
+ where e.salary > a.avsal 
+   and e.dept = a.dept;
+
+-- Subquery used in above example
+select dept,avg(salary) as avsal 
+                  from employee 
+              group by dept;
+              

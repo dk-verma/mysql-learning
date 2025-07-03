@@ -1,0 +1,31 @@
+MSID: 7M484
+username or userID: deepakkv
+
+RSA PIN: 112233
+password: Asdfgh#7
+color: violet
+sport: hockey
+
+secure ID: 
+temporary ids:
+125214
+070552
+136135
+
+
+cs/
+
+11:30 scrum: 99276786868
+5pm call ID: 91235921208
+
+
+Shashank: Python + JIRA
+Manish: Python
+Venkatesh: Python + Script + System
+Kritika: Backend JAVA + UI + API Lead
+Sandeep: Python + Script
+Gokul: JAVA + DBMS
+Sanket Panda: JAVA + UI+ DBMS + Infra
+Yashas: 
+Vijaya: Python
+Amit: Python + JAVA + Angular + Infra

@@ -1,0 +1,38 @@
+// (CTE is a powerful SQL feature that allows you to define temporary result sets that can be referenced within a query. 
+// Snowflake, a cloud-based data warehousing platform, supports CTEs and provides the necessary syntax to leverage their functionality.)
+
+CREATE TABLE employees (
+  emp_id INT PRIMARY KEY,
+  dept_id INT,
+  product_id INT,
+  quantity INT,
+  sales DECIMAL(10,2)
+);
+
+INSERT INTO employees (emp_id, dept_id, product_id, quantity, sales)
+VALUES
+  (1, 101, 1001, 5, 250.00),
+  (2, 102, 1002, 10, 500.00),
+  (3, 101, 1003, 2, 100.00),
+  (4, 103, 1001, 8, 400.00),
+  (5, 102, 1002, 3, 150.00);
+
+SELECT * from employees;
+
+WITH CTE1 AS (SELECT EMP_ID, DEPT_ID FROM EMPLOYEES)
+SELECT * FROM CTE1;
+
+WITH CTE2 AS (SELECT DEPT_ID, AVG(SALES) AS AVG_SAL FROM EMPLOYEES GROUP BY DEPT_ID)
+SELECT MAX(AVG_SAL) FROM CTE2;
+
+// (or)
+
+WITH CTE2 AS (
+    SELECT DEPT_ID, AVG(SALES) AS AVG_SAL
+    FROM EMPLOYEES
+    GROUP BY DEPT_ID
+)
+SELECT MAX(AVG_SAL) FROM CTE2;
+
+// MAX AVERGAE SALARY IN DEPARTMENT
+SELECT DEPT_ID, AVG(SALES) AS AVG_SAL FROM EMPLOYEES GROUP BY DEPT_ID

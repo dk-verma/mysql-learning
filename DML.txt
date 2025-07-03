@@ -1,0 +1,328 @@
+/*
+DML - Data Manipulation Language
+
+-- SQL commands that deals with the manipulation of data present in the database belong to DML or Data Manipulation Language.
+-- this includes various SQL Statements such as:
+
+    * INSERT – is used to insert data into a table.
+    * UPDATE – is used to update existing data within a table.
+    * DELETE – is used to delete records from a table.
+*/
+
+create or replace table A(id number,
+               name varchar(20));
+               
+create or replace table B(id number,
+               name varchar(20));            
+               
+select * from A;
+select * from B;
+
+insert into A values(1,'Aman'),
+                    (2,'Bhavesh'),
+                    (3,'Carolyn'),
+                    (5,'David');
+                    
+insert into B values(4,'Fulos'),
+                    (9,'Bhavesh'),
+                    (1,'Shanaya'),
+                    (2,'Bhavesh'),
+                    (10,'Pawan');
+                    
+insert into B (select * from A);
+
+select * from B;
+
+-- SUBQUERY in DELETE statement
+
+delete from B 
+where name = (select 
+            name from A 
+            where name = 'Bhavesh');
+              
+select * from B;
+
+-- SUBQUERY in UPDATE statement
+
+insert into B values(4,'Fulos'),
+                    (9,'Bhavesh'),
+                    (1,'Shanaya'),
+                    (2,'Bhavesh'),
+                    (10,'Pawan');
+                    
+select * from B;
+
+update B
+set name = 'Rohit'
+where name in (select distinct name
+              from A
+              where name like 'B%');
+              
+select * from B;
+
+insert into B values(1,NULL);
+
+update B
+set name = 'PAVAN'
+where name is NULL;
+
+-- be cautious while using UPDATE and DELETE operations - MAKE SURE TO USE WHERE STATEMENT
+update B
+set name = 'XYZ';
+
+
+---------------- Operators in SQL
+1.) Arithmetic Operators
+2.) Comparison Operators
+3.) Logical Operators
+
+Arithmetic Operators:
+    + -> Addition
+    - -> Subtraction
+    * -> Multiplication
+    / -> Division
+    % -> Modulus -> Provides remainder value after division
+    
+    5/2 = 1
+    
+Comparison Operators:
+    <  -> Less than
+    >  -> Greater than
+    <= -> Less than equal to
+    >= -> Greater than equal to
+    =  -> Equal to
+    != -> Not equal to
+    <> -> Not equal to
+    
+Logical Operators:
+    AND
+    OR
+    IN
+    NOT IN
+    BETWEEN
+    LIKE
+    CONTAINS
+
+# 1.) Arithmetic Operators
+select o_totalprice,
+    (o_totalprice + o_custkey) as tot_price_custkey_add,
+    (o_totalprice - o_custkey) as tot_price_custkey_minus,
+    (o_totalprice * 2) as tot_price_multiply2,
+    (o_totalprice / 3) as tot_price_division3,
+    (o_totalprice % 4) as tot_price_modulus4
+from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."ORDERS";
+
+# 2.) Comparison Operators
+select * from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."CUSTOMER" limit 100;
+
+select * from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."CUSTOMER"
+    where c_acctbal < '1000.00' limit 100;
+    
+select * from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."CUSTOMER"
+    where c_acctbal >= '1000.00' and c_nationkey <= 10 limit 100;
+
+select * from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."CUSTOMER"
+    where c_acctbal > '1000.00' and c_nationkey != 10 limit 100;
+
+select * from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."CUSTOMER"
+    where c_mktsegment = 'FURNITURE' and c_nationkey <> 10 limit 100;
+
+
+# Logical Operators
+
+//IN - used to include multiple values in where condition
+//NOT IN - used to exclude specific values from the condition
+
+SELECT * FROM "SNOWFLAKE_SAMPLE_DATA"."TPCDS_SF10TCL"."CALL_CENTER"
+    WHERE CC_CALL_cENTER_SK = '4' or CC_CALL_cENTER_SK = '12' or CC_CALL_cENTER_SK = '18' 
+        or CC_CALL_cENTER_SK = '24' or CC_CALL_cENTER_SK = '45';
+
+SELECT * FROM "SNOWFLAKE_SAMPLE_DATA"."TPCDS_SF10TCL"."CALL_CENTER"
+    WHERE CC_CALL_cENTER_SK IN (4,12,18,24,45) or CC_CLASS IN ('medium', 'large');
+    
+SELECT * FROM "SNOWFLAKE_SAMPLE_DATA"."TPCDS_SF10TCL"."CALL_CENTER"
+    WHERE CC_CALL_cENTER_SK NOT IN (4,12,18,24,45);
+
+
+# Logical Operator - Between
+    ----This operator helps user to pass on a range of values between which they want to see as the output
+
+SELECT * FROM "SNOWFLAKE_SAMPLE_DATA"."TPCDS_SF10TCL"."CALL_CENTER"
+    WHERE CC_CALL_CENTER_SK >= '4' and CC_CALL_CENTER_SK <= '9';
+    
+SELECT * FROM "SNOWFLAKE_SAMPLE_DATA"."TPCDS_SF10TCL"."CALL_CENTER"
+    WHERE CC_CALL_CENTER_SK between '4' and '9';
+
+
+# Logical Operator - Like
+    ----This operator can be used to detect values which are following some pattern
+
+SELECT * FROM "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."CUSTOMER"
+    WHERE c_comment like 'a%';
+
+SELECT * FROM "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."CUSTOMER"
+    WHERE c_comment like '%s';
+    
+SELECT * FROM "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."CUSTOMER"
+    WHERE c_comment like '%package%';
+    
+SELECT * FROM "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."CUSTOMER"
+    WHERE c_name like 'Customer#0000134%';
+
+SELECT * FROM "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."CUSTOMER"
+    WHERE c_name like '_____________134%';
+
+
+# Logical Operator - Contains
+    ----This operator can be used to find out if one string contains another string. It can be applied to whole column
+    
+SELECT * FROM "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."CUSTOMER"
+    WHERE contains (c_name, '134');
+
+SELECT CONTAINS('snowflake', 'fl') as contains_example from dual;
+    
+SELECT CONTAINS('snowflake', 'flk') as contains_example from dual;
+
+
+-- distinct keyword
+#### Used to find unique rows/values by removing duplicate data from the table;
+
+select c_nationkey from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."CUSTOMER";
+
+select distinct c_nationkey from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."CUSTOMER";
+
+select distinct * from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."CUSTOMER";
+
+create or replace table A(id number,
+               name varchar);
+               
+select * from A;
+
+insert into A values(1,'A'),
+                    (2,'D'),
+                    (3,'C'),
+                    (2,'D'),
+                    (1,'B');
+
+select * from A;
+
+select distinct * from A ;
+
+
+---------------------- LIMIT and OFFSET ----------------------
+-- LIMIT: used to restrict the number of rows in the output
+-- OFFSET: used to skip first N rows
+    -- OFFSET cannot be used alone, it should be used with LIMIT keyword
+
+select * from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."CUSTOMER";
+
+select * from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."CUSTOMER" limit 10;
+select * from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."CUSTOMER" offset 5;
+select * from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."CUSTOMER" limit 10 offset 8;
+
+
+-- GROUP BY 
+#### This is used when you want to perform any analysis or to summarize the data, in order to view the high level picture about the data
+
+select * from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."CUSTOMER";
+
+select *, 
+    sum(c_acctbal) as acct_bal
+from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."CUSTOMER"
+group by c_mktsegment;
+
+select c_mktsegment, 
+    sum(c_acctbal) as acct_bal
+from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."CUSTOMER"
+group by c_mktsegment;
+
+
+select * from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."ORDERS";
+
+select o_orderpriority,
+    count(o_orderkey) as num_of_orders,
+    sum(o_totalprice) as total_price
+from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."ORDERS"
+group by o_orderpriority;
+
+select o_orderpriority,
+    o_orderstatus,
+    count(o_orderkey),
+    sum(o_totalprice) as total_price
+from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."ORDERS"
+group by o_orderstatus,o_orderpriority
+order by o_orderstatus;
+
+
+-- ORDER BY
+/* Used to sort the values by specific columns. 
+    By default, it is sorted in ASCENDING order but we can sort data in DESCENDING order too
+    KEYWORDS for sorting: 'ASC' for ascending and 'DESC' for descending
+*/
+   
+select * from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."ORDERS";
+
+select * from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."ORDERS" order by o_orderpriority;
+
+select * from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."ORDERS" order by o_orderpriority desc;
+
+select * from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."ORDERS" order by o_orderpriority desc, o_orderstatus;
+
+select o_orderpriority,
+    o_orderstatus,
+    count(o_orderkey) count_of_orders,
+    sum(o_totalprice) as total_price
+from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."ORDERS"
+group by o_orderpriority,
+        o_orderstatus
+order by o_orderpriority,
+        total_price desc;
+
+
+/*
+-- HAVING
+    - The HAVING Clause enables you to specify conditions that filters the grouped results.
+    - The WHERE clause place conditions on the selected columns, 
+        whereas the HAVING clause places conditions on groups created by the GROUP BY clause.
+    - The HAVING clause was added to SQL because the WHERE keyword could not be used with aggregate functions.
+*/
+
+---- Problem statement: Find c_mktsegment which has grouped account balance greater than 1280000
+
+// below query will not work, since where works on individual row level and uses original column names of the table
+  // in this case, acct_bal which is the derived column in the query cannot be used with where
+
+select * from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."CUSTOMER";
+
+select c_mktsegment, 
+    sum(c_acctbal) as acct_bal
+from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."CUSTOMER"
+where acct_bal > 1280000
+group by c_mktsegment;
+
+/* below query will not work, since where works on individual row level and uses original column names of the table
+   In this case, if we use c_acctbal which is the original column from the table will not give us the desired results as there is 
+   no c_acctbal which is greater than 1280000. Also where will not check each c_mktsegment*/
+select c_mktsegment, 
+    sum(c_acctbal) as acct_bal
+from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."CUSTOMER"
+where c_acctbal > 1280000
+group by c_mktsegment;
+
+/* Below query will work as we are using HAVING clause with the derived column 'acct_bal' which will check acct_bal > 1280000 for the 
+    grouped account balance for each c_mktsegment */
+select c_mktsegment, 
+    sum(c_acctbal) as acct_bal
+from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."CUSTOMER"
+group by c_mktsegment
+having acct_bal > 1280000;
+
+-- HAVING with 'avg'
+select c_mktsegment, 
+    sum(c_acctbal) as acct_bal
+from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."CUSTOMER"
+group by c_mktsegment
+having acct_bal < (select avg(avg_acctbal) from 
+                   (select sum(c_acctbal) as avg_acctbal from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."CUSTOMER" group by c_mktsegment));
+
+

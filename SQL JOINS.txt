@@ -1,0 +1,255 @@
+------------------------ JOINS ------------------------
+
+/* 
+What are Joins?
+-- A SQL Join statement is used to combine data or rows from two or more tables based on a common field between them.
+-- Common fields are also known as keys
+
+Types of keys used in JOINS:
+-- primary_key: primary key is a field in a table which uniquely identifies each row/record in a database table. 
+                Primary keys must contain unique values. 
+                A primary key column cannot have NULL values
+                
+-- foreign_key: A FOREIGN KEY is a key used to link two tables together.
+                A FOREIGN KEY is a field (or collection of fields) in one table that refers to the PRIMARY KEY in another table
+
+What are the different types of joins?
+-- There are 4 types of joins in SQL:
+    - left join: Fetch everything from left table and just common data from right table
+                 The rows for which there is no matching row on right side, the result-set will contain NULL. 
+                 LEFT JOIN is also known as LEFT OUTER JOIN
+                 
+    - right join: Fetch everything from right table and just common data from left table
+                  The rows for which there is no matching row on left side, the result-set will contain NULL. 
+                  RIGHT JOIN is also known as RIGHT OUTER JOIN
+                  
+    - inner join: Fetch rows from both the tables as long as the condition satisfies
+    
+    - full join: Fetch the result-set by combining result of both LEFT JOIN and RIGHT JOIN. 
+                 The result-set will contain all the rows from both the tables. 
+                 The rows for which there is no matching, the result-set will contain NULL values.
+    
+-- one more special type of join    
+    - self join
+
+What happens in backend when a join is performed between two tables?
+-- Crossproduct / Cartesian product: 
+    - It returns the Cartesian product of both the tables. 
+    - Cartesian product means Number of Rows present in Table 1 Multiplied by Number of Rows present in Table 2
+    
+Types of possible relationships between data in two tables:
+    - 1 to 1
+    - 1 to many
+    - many to many
+    
+------------------------------------------------------------------------------------------------------------------*/
+
+
+// 1.) LEFT JOIN
+
+create or replace table A(id number,
+               name varchar(20));
+               
+create or replace table B(id number,
+               salary number);
+               
+select * from A;
+select * from B;
+
+-- 1 to 1 Relationship
+insert into A values(1,'A'),
+                    (2,'B'),
+                    (3,'C'),
+                    (5,'D');
+                    
+insert into B values(1,100),
+                    (2,200),
+                    (3,300);
+
+select * from A;  
+select * from B;
+
+select A.*, B.salary 
+from A left join B
+on A.id = B.id;
+
+// When joining column names are different in tables
+
+create or replace table C(pid number,
+               salary number);
+
+insert into C values(1,100),
+                    (2,200),
+                    (3,300);
+                    
+select * from C;
+
+select A.*, C.salary 
+from A left join C
+on A.id = C.pid;
+
+// 1 to Many Relationship
+
+insert into A values(1,'H'),
+                    (1,'J'),
+                    (4,'K'),
+                    (3,'O');
+
+select * from A;
+
+select A.*, B.salary 
+from A left join B
+on A.id = B.id;
+
+// Many to Many Relationship
+
+insert into B values(1,450),
+                    (5,200),
+                    (3,900),
+                    (3,70),
+                    (2,170);
+
+select * from B;
+
+select A.*, B.salary 
+from A left join B
+on A.id = B.id;
+
+// how joins work when there are NULL values in the data? (IMPORTANT QUESTION)
+
+select * from A;
+
+select * from B;
+
+insert into A values(1,'A'),
+                    (NULL,NULL),
+                    (NULL,NULL),
+                    (2,'D');
+                    
+select A.*, B.salary 
+from A left join B
+on A.id = B.id;
+
+
+
+-- RIGHT JOIN (Many to Many Relationship)
+
+select * from A;
+
+select * from B;
+
+select B.*, A.name from A right join B
+on B.id = A.id
+order by B.id;
+
+
+-- INNER JOIN
+
+select B.*, A.name from A inner join B
+on B.id = A.id
+order by B.id;
+
+
+-- FULL JOIN
+
+select B.*, A.name from A full join B
+on B.id = A.id
+order by B.id;
+
+
+
+-- SELF JOIN
+-- A self join is a join in which a table is joined with itself
+create or replace table employee(id number,
+                                 name varchar(20),
+                                manager_id number);
+
+insert into employee values(2, 'A', 9),
+                           (5, 'B', 9),
+                           (9, 'C', 6),
+                           (1, 'D', 4),
+                           (6, 'E', 3);
+
+select * from employee;
+
+select a.id, a.name as manager_name
+from employee a inner join employee b
+on a.id = b.manager_id;
+
+select distinct a.id, a.name as manager_name
+from employee a inner join employee b
+on a.id = b.manager_id;
+
+
+-- Real world example for self join
+
+create or replace table employee(employee_id number,
+                     empl_join_date date,
+                     dept varchar(10),
+                     salary number,
+                     manager_id number);
+                     
+insert into employee values(1,'2014-10-01','HR',40000,4),
+                                 (2,'2014-09-01','Tech',50000,9),
+                                 (3,'2018-09-01','Marketing',30000,5),
+                                 (4,'2017-09-01','HR',10000,5),
+                                 (5,'2019-09-01','HR',35000,9),
+                                 (6,'2015-09-01','Tech',90000,4),
+                                 (7,'2016-09-01','Marketing',20000,1);
+
+select * from employee;
+
+SELECT e.employee_id, e.manager_id
+FROM
+    employee e,employee m
+where e.manager_id = m.employee_id 
+    and e.empl_join_date < m.empl_join_date;
+    
+
+-- JOIN multiple tables in one query
+
+create or replace table A(id number,
+               name varchar(20));
+               
+create or replace table B(id number,
+               salary number);
+               
+create or replace table C(id number,
+               dept varchar(20));               
+               
+select * from A;
+select * from B;
+select * from C;
+
+insert into A values(1,'A'),
+                    (2,'B'),
+                    (3,'C'),
+                    (5,'D');
+                    
+insert into B values(1,100),
+                    (2,200),
+                    (3,300);
+                    
+insert into C values(1,'HR'),
+                    (2,'TECH'),
+                    (3,'HR'),
+                    (7,'TECH'),
+                    (8,'MARKETING'),
+                    (5,'HR');
+                    
+select * from A;  
+select * from B;
+select * from C;
+
+select A.*, B.salary, C.dept
+from A left join B
+on A.id = B.id
+left join C
+on B.id = C.id;
+
+select C.*, B.salary, A.name
+from A left join B
+on A.id = B.id
+right join C
+on B.id = C.id;
+

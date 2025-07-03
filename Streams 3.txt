@@ -1,0 +1,130 @@
+/*
+-- There are 3 types of Streams in Snowflake:
+    - Standard
+    - Append only
+    - Insert only
+*/
+
+-- Standard Stream
+
+-- Create a table to store the details of employees
+create or replace table employees(employee_id number,
+                    salary number,
+                     manager_id number);
+
+-- Create a stream to track changes to data in the EMPLOYEES table
+create or replace stream employees_stream on table employees;
+
+SHOW STREAMS;
+
+DESCRIBE STREAM employees_stream;
+
+SELECT SYSTEM$STREAM_GET_TABLE_TIMESTAMP('employees_stream');
+
+SELECT to_timestamp(SYSTEM$STREAM_GET_TABLE_TIMESTAMP('employees_stream')) as stream_offset;
+
+-- insert values in employees table
+insert into employees values(8,40000,4),
+                                 (12,50000,9),
+                                 (3,30000,5),
+                                 (4,10000,5),
+                                 (25,35000,9);
+                                 
+-- The stream records the inserted rows
+select * from employees_stream;
+
+
+-- Consume the stream
+create or replace table employees_consumer(employee_id number,
+                     salary number);
+                     
+insert into employees_consumer select employee_id, salary from employees_stream;
+
+select * from employees_consumer;
+
+SELECT SYSTEM$STREAM_GET_TABLE_TIMESTAMP('employees_stream');
+
+SELECT to_timestamp(SYSTEM$STREAM_GET_TABLE_TIMESTAMP('employees_stream')) as stream_offset;
+
+
+--UPDATE Stream
+
+select * from employees_stream;
+
+SELECT SYSTEM$STREAM_GET_TABLE_TIMESTAMP('employees_stream');
+
+SELECT to_timestamp(SYSTEM$STREAM_GET_TABLE_TIMESTAMP('employees_stream')) as stream_offset;
+
+-- Create a table to store the details of employees
+update employees set salary = salary + 10000 where salary < 33000;
+
+SELECT to_timestamp(SYSTEM$STREAM_GET_TABLE_TIMESTAMP('employees_stream')) as stream_offset;
+
+select * from employees_stream;
+
+insert into employees_consumer select employee_id, salary 
+                                from employees_stream 
+                                where METADATA$ACTION = 'INSERT' and METADATA$ISUPDATE = 'TRUE';
+
+select * from employees_consumer;
+
+SELECT to_timestamp(SYSTEM$STREAM_GET_TABLE_TIMESTAMP('employees_stream')) as stream_offset;
+
+
+-- DELETE Stream
+
+select * from employees_stream;
+
+SELECT SYSTEM$STREAM_GET_TABLE_TIMESTAMP('employees_stream');
+
+SELECT to_timestamp(SYSTEM$STREAM_GET_TABLE_TIMESTAMP('employees_stream')) as stream_offset;
+
+-- Create a table to store the details of employees
+DELETE FROM employees WHERE SALARY < 40000;
+
+select * from employees_stream;
+
+DELETE FROM employees_consumer WHERE EMPLOYEE_ID IN (select DISTINCT employee_id
+                                from employees_stream 
+                                where METADATA$ACTION = 'DELETE' and METADATA$ISUPDATE = 'FALSE');
+
+select * from employees_consumer;
+
+SELECT to_timestamp(SYSTEM$STREAM_GET_TABLE_TIMESTAMP('employees_stream')) as stream_offset;
+
+
+-- INSERTs WITHIN A TRANSACTION
+
+SELECT SYSTEM$STREAM_GET_TABLE_TIMESTAMP('employees_stream');
+
+SELECT to_timestamp(SYSTEM$STREAM_GET_TABLE_TIMESTAMP('employees_stream')) as stream_offset;
+
+BEGIN;
+
+show transactions;
+
+-- insert values in employees table
+insert into employees values(12,50000,9),
+                            (86,90000,4),
+                          (73,20000,1);
+                                 
+-- The stream records the inserted rows
+select * from employees_stream;
+
+COMMIT;
+
+select * from employees_stream;
+
+-- Consume the stream
+create or replace table employees_consumer(employee_id number,
+                     salary number);
+                     
+insert into employees_consumer select employee_id, salary from employees_stream;
+
+select * from employees_consumer;
+
+DROP STREAM EMPLOYEES_STREAM;
+
+ALTER STREAM EMPLOYEES_STREAM SET COMMENT = 'This stream is used to capture changes from employees table';
+
+SHOW STREAMS;

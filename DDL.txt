@@ -1,0 +1,223 @@
+/*
+DDL - Data Definition Language
+
+-- It consists of the SQL commands that can be used to define or make changes in the database objects. 
+-- It simply deals with descriptions and is used to create and modify the structure of database objects in the database. 
+
+Examples of DDL commands:
+
+    * CREATE – is used to create the database or its objects (like table, index, function, views, triggers and store procedure).
+    * DROP – is used to delete objects from the database.
+    * ALTER - is used to alter the structure of the database.
+    * TRUNCATE – is used to remove all records from a table, including all spaces allocated for the records are removed.
+    * COMMENT – is used to add comments to the data dictionary.
+
+*/
+----------------- CREATE -----------------
+-- create the database or its objects (warehouse, database, schema, table, stage, file format, role, user,
+--                                     function, views, triggers and store procedure).
+
+// create virtual warehouse
+create warehouse test;           -- By default it creates XS-Extra Small size warehouse
+
+-- Warehouse sizes are similar to T-SHIRT sizes from XS to 4X-LARGE
+-- Provide warehouse NAME as it is mandatory 
+-- Below are optional parameters that CREATE WAREHOUSE statement
+/*objectProperties ::=
+  WAREHOUSE_SIZE = XSMALL | SMALL | MEDIUM | LARGE | XLARGE | XXLARGE | XXXLARGE | X4LARGE
+  MAX_CLUSTER_COUNT = <num>
+  MIN_CLUSTER_COUNT = <num>
+  SCALING_POLICY = STANDARD | ECONOMY
+  AUTO_SUSPEND = <num> | NULL
+  AUTO_RESUME = TRUE | FALSE
+  INITIALLY_SUSPENDED = TRUE | FALSE
+  RESOURCE_MONITOR = <monitor_name>
+  COMMENT = '<string_literal>'*/
+
+create warehouse my_wh WAREHOUSE_SIZE = MEDIUM;
+
+-- To suspend a warehouse
+alter warehouse test suspend;
+
+-- if warehouse is in suspended state, we can resume it by running below statement
+alter warehouse test resume;
+
+-- list warehouses
+show warehouses;
+
+use warehouse compute_wh;
+use warehouse test;
+
+-- To know more about the usage of above additional parameters, refer to below URL:
+-- https://docs.snowflake.com/en/sql-reference/sql/create-warehouse.html
+
+// create database
+create database company;
+
+create or replace database company;
+
+show databases like 'c%';
+
+use database demo_db;
+
+
+// create schema
+create or replace schema employee;
+create schema if not exists department;
+drop schema if exists department;
+
+show schemas like 'e%';
+
+use schema information_schema;
+use schema public;
+
+
+//create table
+create table EMPLOYEE.A(id number,
+               name varchar(20));
+
+create or replace table B(id number(32,5),
+               salary number,
+               department varchar(10));
+               
+-- precision, scale: These are the parameters that can be passed with various datatypes such as number
+                    -- Precision is the length of string/number that column can have 
+                    -- Scale is the number of digits that will be allowed after (.)
+                    -- Example: number(38,5) shows that precision is 38 and scale is 5
+               
+---- To view all snowflake supported datatypes, refer to below URL:
+-- https://docs.snowflake.com/en/sql-reference/data-types.html
+
+
+-- Create parquet format
+create or replace file format demo_db.public.parquet_format
+  type = 'parquet';
+
+-- Create stage object
+create or replace stage demo_db.public.mystage
+  file_format = demo_db.public.parquet_format;
+
+
+// create view
+-- a materialized view is a database object that contains the results of a query. 
+-- For example, it may be a local copy of data located remotely, 
+--      or may be a subset of the rows and/or columns of a table or join result, or may be a summary using an aggregate function
+
+create view myview as 
+    select * 
+    from "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF001"."CUSTOMER" 
+    where c_custkey <= 5;
+
+select * from myview;
+
+---- To know more about snowflake views, refer to below URL:
+-- https://docs.snowflake.com/en/sql-reference/sql/create-view.html
+
+
+----------------- ALTER -----------------
+-- alter the structure of the objects
+
+------ ALTER WAREHOUSE
+  -- Suspends or resumes a virtual warehouse, or aborts all queries (and other SQL statements) for a warehouse. 
+  -- Can also be used to rename or set/unset the properties for a warehouse.
+  
+-- To suspend a warehouse
+alter warehouse test suspend;
+
+alter warehouse test resume;
+
+-- if warehouse is in suspended state, we can resume it by running below statement
+alter warehouse test resume if suspended;
+
+-- abort all queries running in warehouse
+alter warehouse compute_wh abort all queries;
+
+-- rename warehouse name
+alter warehouse compute_wh rename to computer_wh;
+alter warehouse computer_wh rename to compute_wh;
+
+
+------ ALTER DATABASE
+-- Modifies the properties for an existing database, including the following:
+    -- Changing the name of the database or changing the Time Travel data retention period 
+                -- (only available in ENTERPRISE or BUSINESS CRITICAL snowflake editions)
+    -- Enabling and managing database replication and failover.
+
+ALTER DATABASE IF EXISTS COMPANY RENAME TO PRODUCTION;
+ALTER DATABASE IF EXISTS PRODUCTION RENAME TO COMPANY;
+
+------ ALTER SCHEMA
+-- Modifies the properties for an existing schema, including renaming the schema or swapping it with another schema, 
+    // and changing the Time Travel data retention period
+    
+ALTER SCHEMA IF EXISTS EMPLOYEE RENAME TO EMPL;
+
+create or replace schema employee;
+create schema if not exists department;
+create or replace table demo_db.employee.empl_details(empl_id number);
+create or replace table demo_db.department.dept_details(dept_id number);
+
+ALTER SCHEMA IF EXISTS DEMO_DB.DEPARTMENT SWAP WITH DEMO_DB.EMPLOYEE;
+
+ALTER SCHEMA IF EXISTS DEMO_DB.DEPARTMENT
+SET DATA_RETENTION_TIME_IN_DAYS = 2,
+    COMMENT = 'DEPARTMENT DETAILS SCHEMA';
+    
+SELECT * FROM "DEMO_DB"."INFORMATION_SCHEMA"."SCHEMATA"
+WHERE SCHEMA_NAME = 'DEPARTMENT';
+    
+show schemas;
+    
+------ ALTER TABLE
+-- Modifies the properties, columns, or constraints for an existing table.
+
+ALTER TABLE IF EXISTS DEPARTMENT.DEPT_DETAILS RENAME TO DEPARTMENT_DETAILS;
+
+ALTER TABLE IF EXISTS EMPLOYEE.DEPARTMENT_DETAILS RENAME TO DEPARTMENT.DEPARTMENT_DETAILS;
+
+create or replace table demo_db.department.department_employees(dept_id number,
+                                                               empl_name varchar(40));
+                                                               
+ALTER TABLE IF EXISTS DEMO_DB.DEPARTMENT.DEPARTMENT_DETAILS SWAP WITH DEMO_DB.DEPARTMENT.DEPARTMENT_EMPLOYEES;
+
+
+----------------- DROP -----------------
+-- delete objects from the database permenently.
+
+drop table employee.empl_details;
+drop schema demo_db.empl;
+drop database company;
+drop warehouse test;
+drop view demo_db.public.myview;
+drop stage if exists mystage;
+drop file format if exists parquet_format;
+
+
+----------------- TRUNCATE -----------------
+-- remove all records from a table, including all memory spaces allocated for the records are removed
+
+TRUNCATE TABLE DEMO_DB.PUBLIC.A;
+TRUNCATE TABLE IF EXISTS DEMO_DB.DEPARTMENT.DEPARTMENT_DETAILS;
+
+----------------- COMMENT -----------------
+-- add comments to the data dictionary
+-- overwrites an existing comment for an existing object.
+-- can be added to all objects (users, roles, warehouses, databases, tables, etc.). 
+-- can be added to individual table columns as well.
+
+COMMENT IF EXISTS ON SCHEMA DEMO_DB.DEPARTMENT IS 'TEST Department Schema xyz';
+
+SHOW SCHEMAS LIKE 'DEPARTMENT';
+
+DESC SCHEMA DEPARTMENT;
+
+COMMENT IF EXISTS ON TABLE DEMO_DB.DEPARTMENT.DEPARTMENT_EMPLOYEES IS 'ALL ABOUT DEPARTMENT DETAILS';
+
+SHOW TABLES LIKE 'DEPARTMENT_EMPLOYEES';
+
+DESC TABLE DEMO_DB.DEPARTMENT.DEPARTMENT_EMPLOYEES;
+
+select * from "DEMO_DB"."INFORMATION_SCHEMA"."TABLES" where table_Schema = 'DEPARTMENT';
+
+select count(distinct table_name) from "DEMO_DB"."INFORMATION_SCHEMA"."TABLES" where table_Schema = 'DEPARTMENT';
+
